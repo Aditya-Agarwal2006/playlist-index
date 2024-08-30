@@ -28,7 +28,7 @@ function App() {
 
   const handleLogin = () => {
     const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
-    const redirectUri = 'https://Aditya-Agarwal2006.github.io/spotify-playlist-tool/callback';
+    const redirectUri = 'https://Aditya-Agarwal2006.github.io/spotify-playlist-tool/callback/';
     const scopes = [
       'user-read-private',
       'playlist-read-private',
