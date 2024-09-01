@@ -17,6 +17,7 @@ function App() {
   });
 
   useEffect(() => {
+    document.title = "Playlist Index";
     const params = new URLSearchParams(window.location.hash.substring(1));
     const token = params.get('access_token');
     if (token) {
@@ -28,7 +29,7 @@ function App() {
 
   const handleLogin = () => {
     const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
-    const redirectUri = 'https://Aditya-Agarwal2006.github.io/playlist-index/callback/';
+    const redirectUri = 'https://Aditya-Agarwal2006.github.io/playlist-index/';
     const scopes = [
       'user-read-private',
       'playlist-read-private',

@@ -1,5 +1,5 @@
 {
-  "name": "spotify-playlist-tool",
+ "name": "playlist-index",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -42,5 +42,5 @@
   "devDependencies": {
     "gh-pages": "^6.1.1"
   },
-  "homepage": "https://Aditya-Agarwal2006.github.io/spotify-playlist-tool"
+ "homepage": "https://Aditya-Agarwal2006.github.io/playlist-index"
 }
