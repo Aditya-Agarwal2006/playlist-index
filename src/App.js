@@ -28,7 +28,7 @@ function App() {
 
   const handleLogin = () => {
     const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
-    const redirectUri = 'https://Aditya-Agarwal2006.github.io/spotify-playlist-tool/callback/';
+    const redirectUri = 'https://Aditya-Agarwal2006.github.io/playlist-index/callback/';
     const scopes = [
       'user-read-private',
       'playlist-read-private',
@@ -113,7 +113,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Spotify Playlist Tool</h1>
+        <h1>Playlist Index</h1>
       </header>
       {!loggedIn ? (
         <div className="login-container">
