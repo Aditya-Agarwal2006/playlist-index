@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/spotify-playlist-tool/static/css/main.53c51358.css",
+    "main.js": "/spotify-playlist-tool/static/js/main.144abc54.js",
+    "static/js/453.af2dfa93.chunk.js": "/spotify-playlist-tool/static/js/453.af2dfa93.chunk.js",
+    "index.html": "/spotify-playlist-tool/index.html",
+    "main.53c51358.css.map": "/spotify-playlist-tool/static/css/main.53c51358.css.map",
+    "main.144abc54.js.map": "/spotify-playlist-tool/static/js/main.144abc54.js.map",
+    "453.af2dfa93.chunk.js.map": "/spotify-playlist-tool/static/js/453.af2dfa93.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.53c51358.css",
+    "static/js/main.144abc54.js"
+  ]
+}
