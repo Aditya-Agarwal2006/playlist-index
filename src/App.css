@@ -14,12 +14,13 @@
 
 .app-header h1 {
   font-size: 3rem;
-  color: #1db954;
+  color: #1db954;  /* Spotify green */
 }
 
 .login-container {
   text-align: center;
-  margin-top: 100px;
+  margin-top: 20px;
+  padding: 20px;
 }
 
 .login-button, .search-button {
