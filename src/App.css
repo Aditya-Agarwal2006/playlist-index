@@ -1,16 +1,60 @@
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #e0e0e0;
+  --text-primary: #121212;
+  --text-secondary: #333333;
+}
+
+.dark-mode {
+  --bg-primary: #121212;
+  --bg-secondary: #181818;
+  --bg-tertiary: #282828;
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+}
+
 .app {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-family: 'Roboto', Arial, sans-serif;
   width: 100%;
   min-height: 100vh;
   margin: 0;
   padding: 30px;
   box-sizing: border-box;
-  background-color: #121212; /* Dark gray color */
-  color: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.dark-mode {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+.light-mode {
+  background-color: #ffffff;
+  color: #121212;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #1db954;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.theme-toggle:hover {
+  background-color: #1ed760;
 }
 
 .app-header {
@@ -45,7 +89,7 @@
 }
 
 .main-content {
-  background-color: #181818;
+  background-color: var(--bg-secondary);
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -64,8 +108,8 @@
   font-size: 16px;
   border: none;
   border-radius: 30px 0 0 30px;
-  background-color: #282828;
-  color: #ffffff;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .search-button {
@@ -102,7 +146,7 @@
 }
 
 .track-card {
-  background-color: #282828;
+  background-color: var(--bg-tertiary);
   border: 1px solid #333;
   border-radius: 8px;
   padding: 20px;
@@ -116,13 +160,13 @@
 
 .track-title {
   margin: 0 0 10px;
-  color: #1db954;
+  color: var(--text-primary);
   font-size: 1.5rem;
 }
 
 .track-artist, .track-album, .track-popularity {
   margin: 5px 0;
-  color: #b3b3b3;
+  color: var(--text-secondary);
 }
 
 .playlist-header {
@@ -138,7 +182,7 @@
 .playlist-item {
   margin-bottom: 10px;
   padding: 10px;
-  background-color: #333;
+  background-color: var(--bg-tertiary);
   border-radius: 4px;
 }
 

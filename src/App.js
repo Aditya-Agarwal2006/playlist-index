@@ -15,6 +15,11 @@ function App() {
     artist: true,
     album: true
   });
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  const toggleTheme = () => {
+    setIsDarkMode(prevMode => !prevMode);
+  };
 
   useEffect(() => {
     document.title = "Playlist Index";
@@ -112,10 +117,13 @@ function App() {
   };
 
   return (
-    <div className="app">
+    <div className={`app ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
       <header className="app-header">
         <h1>Playlist Index</h1>
       </header>
+      <button className="theme-toggle" onClick={toggleTheme}>
+        {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+      </button>
       {!loggedIn ? (
         <div className="login-container">
           <button className="login-button" onClick={handleLogin}>Login with Spotify</button>
