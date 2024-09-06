@@ -47,25 +47,31 @@ function App() {
   };
 
   const analyzePlaylist = async (playlist) => {
-    const tracks = await spotifyApi.getPlaylistTracks(playlist.id);
-    const analysis = {
-      id: playlist.id,
-      name: playlist.name,
-      trackCount: tracks.items.length,
-      totalDuration: tracks.items.reduce((sum, item) => sum + item.track.duration_ms, 0),
-      averagePopularity: tracks.items.reduce((sum, item) => sum + item.track.popularity, 0) / tracks.items.length,
-      recentlyAdded: tracks.items
-        .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
-        .slice(0, 5)
-        .map(item => ({
-          name: item.track.name,
-          artist: item.track.artists[0].name,
-          addedAt: new Date(item.added_at).toLocaleDateString()
-        })),
-      uniqueArtists: new Set(tracks.items.flatMap(item => item.track.artists.map(artist => artist.name))).size,
-      genres: await getPlaylistGenres(tracks.items)
-    };
-    return analysis;
+    try {
+      const tracks = await spotifyApi.getPlaylistTracks(playlist.id);
+      const analysis = {
+        id: playlist.id,
+        name: playlist.name,
+        trackCount: tracks.items.length,
+        totalDuration: tracks.items.reduce((sum, item) => sum + (item.track ? item.track.duration_ms : 0), 0),
+        averagePopularity: tracks.items.reduce((sum, item) => sum + (item.track ? item.track.popularity : 0), 0) / tracks.items.length,
+        recentlyAdded: tracks.items
+          .filter(item => item.track)
+          .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
+          .slice(0, 5)
+          .map(item => ({
+            name: item.track.name,
+            artist: item.track.artists[0].name,
+            addedAt: new Date(item.added_at).toLocaleDateString()
+          })),
+        uniqueArtists: new Set(tracks.items.flatMap(item => item.track ? item.track.artists.map(artist => artist.name) : [])).size,
+        genres: await getPlaylistGenres(tracks.items)
+      };
+      return analysis;
+    } catch (error) {
+      console.error(`Error analyzing playlist ${playlist.name}:`, error);
+      return null;
+    }
   };
 
   const getPlaylistGenres = async (tracks) => {
@@ -87,12 +93,18 @@ function App() {
   const fetchPlaylists = async () => {
     try {
       const data = await spotifyApi.getUserPlaylists();
+      console.log('Fetched playlists:', data);
       setPlaylists(data.items);
       const analysis = await Promise.all(data.items.map(analyzePlaylist));
+      console.log('Playlist analysis:', analysis);
       setPlaylistAnalysis(analysis);
     } catch (error) {
       console.error('Error fetching playlists:', error);
-      setError('Failed to fetch playlists. Please try logging in again.');
+      if (error.status === 401) {
+        setError('Authentication failed. Please try logging in again.');
+      } else {
+        setError(`Failed to fetch playlists: ${error.message}`);
+      }
     }
   };
 
@@ -167,7 +179,7 @@ function App() {
   const PlaylistAnalysis = ({ analysis }) => (
     <div className="analysis-container">
       <h2>Playlist Analysis</h2>
-      {analysis.map(playlist => (
+      {analysis.filter(Boolean).map(playlist => (
         <div key={playlist.id} className="playlist-analysis">
           <h3>{playlist.name}</h3>
           <p>Tracks: {playlist.trackCount}</p>
