@@ -101,8 +101,8 @@ function App() {
       for (let i = 0; i < data.items.length; i += batchSize) {
         const batch = data.items.slice(i, i + batchSize);
         const batchAnalysis = await Promise.all(batch.map(analyzePlaylist));
-        analysisResults.push(...batchAnalysis);
-        setPlaylistAnalysis(analysisResults);
+        analysisResults.push(...batchAnalysis.filter(Boolean));
+        setPlaylistAnalysis([...analysisResults]);
       }
       
       console.log('Playlist analysis:', analysisResults);
@@ -188,37 +188,41 @@ function App() {
     <div className="analysis-container">
       <h2>Playlist Analysis</h2>
       <p>Analyzed {analysis.filter(Boolean).length} out of {totalPlaylists} playlists</p>
-      {analysis.map((playlist, index) => (
-        <div key={index} className="playlist-analysis">
-          {playlist ? (
-            <>
-              <h3>{playlist.name}</h3>
-              <p>Tracks: {playlist.trackCount}</p>
-              <p>Total Duration: {formatDuration(playlist.totalDuration)}</p>
-              <p>Average Popularity: {playlist.averagePopularity.toFixed(2)}%</p>
-              <p>Unique Artists: {playlist.uniqueArtists}</p>
-              <div>
-                <h4>Top Genres:</h4>
-                <ul>
-                  {playlist.genres.map((genre, index) => (
-                    <li key={index}>{genre.genre} ({genre.count} tracks)</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h4>Recently Added Tracks:</h4>
-                <ul>
-                  {playlist.recentlyAdded.map((track, index) => (
-                    <li key={index}>{track.name} by {track.artist} (Added: {track.addedAt})</li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          ) : (
-            <p>Analyzing...</p>
-          )}
-        </div>
-      ))}
+      {analysis.length === 0 ? (
+        <p>Loading playlist analysis...</p>
+      ) : (
+        analysis.map((playlist, index) => (
+          <div key={index} className="playlist-analysis">
+            {playlist ? (
+              <>
+                <h3>{playlist.name}</h3>
+                <p>Tracks: {playlist.trackCount}</p>
+                <p>Total Duration: {formatDuration(playlist.totalDuration)}</p>
+                <p>Average Popularity: {playlist.averagePopularity.toFixed(2)}%</p>
+                <p>Unique Artists: {playlist.uniqueArtists}</p>
+                <div>
+                  <h4>Top Genres:</h4>
+                  <ul>
+                    {playlist.genres.map((genre, index) => (
+                      <li key={index}>{genre.genre} ({genre.count} tracks)</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4>Recently Added Tracks:</h4>
+                  <ul>
+                    {playlist.recentlyAdded.map((track, index) => (
+                      <li key={index}>{track.name} by {track.artist} (Added: {track.addedAt})</li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            ) : (
+              <p>Analyzing...</p>
+            )}
+          </div>
+        ))
+      )}
     </div>
   );
 
