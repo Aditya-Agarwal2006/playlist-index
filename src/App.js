@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SpotifyWebApi from 'spotify-web-api-js';
-import './App.css'; // Make sure to create this file
+import './App.css';
 
 const spotifyApi = new SpotifyWebApi();
 
@@ -16,6 +16,8 @@ function App() {
     album: true
   });
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [playlistAnalysis, setPlaylistAnalysis] = useState([]);
+  const [showAnalysis, setShowAnalysis] = useState(false);
 
   const toggleTheme = () => {
     setIsDarkMode(prevMode => !prevMode);
@@ -44,10 +46,50 @@ function App() {
     window.location = url;
   };
 
+  const analyzePlaylist = async (playlist) => {
+    const tracks = await spotifyApi.getPlaylistTracks(playlist.id);
+    const analysis = {
+      id: playlist.id,
+      name: playlist.name,
+      trackCount: tracks.items.length,
+      totalDuration: tracks.items.reduce((sum, item) => sum + item.track.duration_ms, 0),
+      averagePopularity: tracks.items.reduce((sum, item) => sum + item.track.popularity, 0) / tracks.items.length,
+      recentlyAdded: tracks.items
+        .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
+        .slice(0, 5)
+        .map(item => ({
+          name: item.track.name,
+          artist: item.track.artists[0].name,
+          addedAt: new Date(item.added_at).toLocaleDateString()
+        })),
+      uniqueArtists: new Set(tracks.items.flatMap(item => item.track.artists.map(artist => artist.name))).size,
+      genres: await getPlaylistGenres(tracks.items)
+    };
+    return analysis;
+  };
+
+  const getPlaylistGenres = async (tracks) => {
+    const artistIds = [...new Set(tracks.flatMap(item => item.track.artists.map(artist => artist.id)))];
+    const artistsData = await Promise.all(
+      artistIds.map(id => spotifyApi.getArtist(id))
+    );
+    const genres = artistsData.flatMap(artist => artist.genres);
+    const genreCounts = genres.reduce((acc, genre) => {
+      acc[genre] = (acc[genre] || 0) + 1;
+      return acc;
+    }, {});
+    return Object.entries(genreCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([genre, count]) => ({ genre, count }));
+  };
+
   const fetchPlaylists = async () => {
     try {
       const data = await spotifyApi.getUserPlaylists();
       setPlaylists(data.items);
+      const analysis = await Promise.all(data.items.map(analyzePlaylist));
+      setPlaylistAnalysis(analysis);
     } catch (error) {
       console.error('Error fetching playlists:', error);
       setError('Failed to fetch playlists. Please try logging in again.');
@@ -116,6 +158,43 @@ function App() {
     }));
   };
 
+  const formatDuration = (ms) => {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = ((ms % 60000) / 1000).toFixed(0);
+    return `${minutes}:${seconds.padStart(2, '0')}`;
+  };
+
+  const PlaylistAnalysis = ({ analysis }) => (
+    <div className="analysis-container">
+      <h2>Playlist Analysis</h2>
+      {analysis.map(playlist => (
+        <div key={playlist.id} className="playlist-analysis">
+          <h3>{playlist.name}</h3>
+          <p>Tracks: {playlist.trackCount}</p>
+          <p>Total Duration: {formatDuration(playlist.totalDuration)}</p>
+          <p>Average Popularity: {playlist.averagePopularity.toFixed(2)}%</p>
+          <p>Unique Artists: {playlist.uniqueArtists}</p>
+          <div>
+            <h4>Top Genres:</h4>
+            <ul>
+              {playlist.genres.map((genre, index) => (
+                <li key={index}>{genre.genre} ({genre.count} tracks)</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h4>Recently Added Tracks:</h4>
+            <ul>
+              {playlist.recentlyAdded.map((track, index) => (
+                <li key={index}>{track.name} by {track.artist} (Added: {track.addedAt})</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className={`app ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
       <header className="app-header">
@@ -123,6 +202,9 @@ function App() {
       </header>
       <button className="theme-toggle" onClick={toggleTheme}>
         {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+      </button>
+      <button className="analysis-toggle" onClick={() => setShowAnalysis(!showAnalysis)}>
+        {showAnalysis ? 'Hide Analysis' : 'Show Analysis'}
       </button>
       {!loggedIn ? (
         <div className="login-container">
@@ -197,6 +279,7 @@ function App() {
               <p className="no-results">No results found</p>
             )}
           </div>
+          {showAnalysis && <PlaylistAnalysis analysis={playlistAnalysis} />}
         </div>
       )}
     </div>
@@ -204,5 +287,3 @@ function App() {
 }
 
 export default App;
-
-// K_M 6PNTR

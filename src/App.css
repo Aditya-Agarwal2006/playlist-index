@@ -202,3 +202,55 @@
   font-size: 1.2rem;
   margin-top: 50px;
 }
+
+.analysis-toggle {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #1db954;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.analysis-toggle:hover {
+  background-color: #1ed760;
+}
+
+.analysis-container {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.playlist-analysis {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: var(--bg-tertiary);
+  border-radius: 8px;
+}
+
+.playlist-analysis h3 {
+  color: #1db954;
+  margin-bottom: 10px;
+}
+
+.playlist-analysis h4 {
+  color: var(--text-primary);
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+
+.playlist-analysis ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.playlist-analysis li {
+  margin-bottom: 5px;
+  color: var(--text-secondary);
+}
