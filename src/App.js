@@ -18,6 +18,8 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [playlistAnalysis, setPlaylistAnalysis] = useState([]);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [playlistsToAnalyze, setPlaylistsToAnalyze] = useState([]);
+  const [showAnalysisSelection, setShowAnalysisSelection] = useState(false);
 
   const toggleTheme = () => {
     setIsDarkMode(prevMode => !prevMode);
@@ -95,23 +97,6 @@ function App() {
       const data = await spotifyApi.getUserPlaylists();
       console.log('Fetched playlists:', data);
       setPlaylists(data.items);
-      
-      const analysisResults = [];
-      for (let i = 0; i < data.items.length; i++) {
-        try {
-          const analysis = await analyzePlaylist(data.items[i]);
-          if (analysis) {
-            analysisResults.push(analysis);
-            setPlaylistAnalysis([...analysisResults]);
-          }
-          // Add a small delay between each analysis to avoid rate limiting
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        } catch (error) {
-          console.error(`Error analyzing playlist ${data.items[i].name}:`, error);
-        }
-      }
-      
-      console.log('Playlist analysis completed:', analysisResults);
     } catch (error) {
       console.error('Error fetching playlists:', error);
       if (error.status === 401) {
@@ -120,6 +105,29 @@ function App() {
         setError(`Failed to fetch playlists: ${error.message}`);
       }
     }
+  };
+
+  const analyzeSelectedPlaylists = async () => {
+    const analysisResults = [];
+    for (let i = 0; i < playlistsToAnalyze.length; i++) {
+      try {
+        const playlist = playlists.find(p => p.id === playlistsToAnalyze[i]);
+        if (!playlist) {
+          console.error(`Playlist with id ${playlistsToAnalyze[i]} not found`);
+          continue;
+        }
+        const analysis = await analyzePlaylist(playlist);
+        if (analysis) {
+          analysisResults.push(analysis);
+          setPlaylistAnalysis([...analysisResults]);
+        }
+        console.log(`Analyzed playlist: ${playlist.name}`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error(`Error analyzing playlist:`, error);
+      }
+    }
+    console.log('Playlist analysis completed:', analysisResults);
   };
 
   const handleSearch = async () => {
@@ -232,6 +240,24 @@ function App() {
     </div>
   );
 
+  const PlaylistSelectionModal = ({ playlists, onSelect, onClose }) => (
+    <div className="modal">
+      <div className="modal-content">
+        <h2>Select Playlists to Analyze</h2>
+        {playlists.map(playlist => (
+          <label key={playlist.id} className="playlist-checkbox">
+            <input
+              type="checkbox"
+              onChange={(e) => onSelect(playlist.id, e.target.checked)}
+            />
+            {playlist.name}
+          </label>
+        ))}
+        <button onClick={onClose}>Analyze Selected Playlists</button>
+      </div>
+    </div>
+  );
+
   return (
     <div className={`app ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
       <header className="app-header">
@@ -240,9 +266,24 @@ function App() {
       <button className="theme-toggle" onClick={toggleTheme}>
         {isDarkMode ? 'Light Mode' : 'Dark Mode'}
       </button>
-      <button className="analysis-toggle" onClick={() => setShowAnalysis(!showAnalysis)}>
-        {showAnalysis ? 'Hide Analysis' : 'Show Analysis'}
+      <button className="analysis-toggle" onClick={() => setShowAnalysisSelection(true)}>
+        Analyze Playlists
       </button>
+      {showAnalysisSelection && (
+        <PlaylistSelectionModal
+          playlists={playlists}
+          onSelect={(id, isSelected) => {
+            setPlaylistsToAnalyze(prev => 
+              isSelected ? [...prev, id] : prev.filter(playlistId => playlistId !== id)
+            );
+          }}
+          onClose={() => {
+            setShowAnalysisSelection(false);
+            analyzeSelectedPlaylists();
+            setShowAnalysis(true);
+          }}
+        />
+      )}
       {!loggedIn ? (
         <div className="login-container">
           <button className="login-button" onClick={handleLogin}>Login with Spotify</button>
