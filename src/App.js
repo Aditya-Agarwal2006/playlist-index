@@ -50,14 +50,25 @@ function App() {
 
   const analyzePlaylist = async (playlist) => {
     try {
-      const tracks = await spotifyApi.getPlaylistTracks(playlist.id);
+      let allTracks = [];
+      let offset = 0;
+      const limit = 100;
+      let totalTracks = 0;
+
+      do {
+        const response = await spotifyApi.getPlaylistTracks(playlist.id, { offset, limit });
+        allTracks = allTracks.concat(response.items);
+        offset += limit;
+        totalTracks = response.total;
+      } while (allTracks.length < totalTracks);
+
       const analysis = {
         id: playlist.id,
         name: playlist.name,
-        trackCount: tracks.items.length,
-        totalDuration: tracks.items.reduce((sum, item) => sum + (item.track ? item.track.duration_ms : 0), 0),
-        averagePopularity: tracks.items.reduce((sum, item) => sum + (item.track ? item.track.popularity : 0), 0) / tracks.items.length,
-        recentlyAdded: tracks.items
+        trackCount: allTracks.length,
+        totalDuration: allTracks.reduce((sum, item) => sum + (item.track ? item.track.duration_ms : 0), 0),
+        averagePopularity: allTracks.reduce((sum, item) => sum + (item.track ? item.track.popularity : 0), 0) / allTracks.length,
+        recentlyAdded: allTracks
           .filter(item => item.track)
           .sort((a, b) => new Date(b.added_at) - new Date(a.added_at))
           .slice(0, 5)
@@ -66,8 +77,8 @@ function App() {
             artist: item.track.artists[0].name,
             addedAt: new Date(item.added_at).toLocaleDateString()
           })),
-        uniqueArtists: new Set(tracks.items.flatMap(item => item.track ? item.track.artists.map(artist => artist.name) : [])).size,
-        genres: await getPlaylistGenres(tracks.items)
+        uniqueArtists: new Set(allTracks.flatMap(item => item.track ? item.track.artists.map(artist => artist.name) : [])).size,
+        genres: await getPlaylistGenres(allTracks)
       };
       return analysis;
     } catch (error) {
