@@ -96,16 +96,22 @@ function App() {
       console.log('Fetched playlists:', data);
       setPlaylists(data.items);
       
-      const batchSize = 5;
       const analysisResults = [];
-      for (let i = 0; i < data.items.length; i += batchSize) {
-        const batch = data.items.slice(i, i + batchSize);
-        const batchAnalysis = await Promise.all(batch.map(analyzePlaylist));
-        analysisResults.push(...batchAnalysis.filter(Boolean));
-        setPlaylistAnalysis([...analysisResults]);
+      for (let i = 0; i < data.items.length; i++) {
+        try {
+          const analysis = await analyzePlaylist(data.items[i]);
+          if (analysis) {
+            analysisResults.push(analysis);
+            setPlaylistAnalysis([...analysisResults]);
+          }
+          // Add a small delay between each analysis to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error(`Error analyzing playlist ${data.items[i].name}:`, error);
+        }
       }
       
-      console.log('Playlist analysis:', analysisResults);
+      console.log('Playlist analysis completed:', analysisResults);
     } catch (error) {
       console.error('Error fetching playlists:', error);
       if (error.status === 401) {
