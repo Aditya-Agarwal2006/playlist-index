@@ -259,7 +259,10 @@ function App() {
           <label key={playlist.id} className="playlist-checkbox">
             <input
               type="checkbox"
-              onChange={(e) => onSelect(playlist.id, e.target.checked)}
+              onChange={(e) => {
+                console.log(`Playlist ${playlist.id} selected: ${e.target.checked}`);
+                onSelect(playlist.id, e.target.checked);
+              }}
             />
             {playlist.name}
           </label>
@@ -268,6 +271,10 @@ function App() {
       </div>
     </div>
   );
+
+  useEffect(() => {
+    console.log('Playlists to analyze:', playlistsToAnalyze);
+  }, [playlistsToAnalyze]);
 
   return (
     <div className={`app ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
@@ -284,6 +291,7 @@ function App() {
         <PlaylistSelectionModal
           playlists={playlists}
           onSelect={(id, isSelected) => {
+            console.log(`Playlist ${id} selected: ${isSelected}`);
             setPlaylistsToAnalyze(prev => 
               isSelected ? [...prev, id] : prev.filter(playlistId => playlistId !== id)
             );

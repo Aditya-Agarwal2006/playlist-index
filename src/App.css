@@ -282,28 +282,29 @@
   color: var(--text-primary);
 }
 
-.playlist-checkbox input {
+.playlist-checkbox input[type="checkbox"] {
   margin-right: 10px;
   appearance: none;
+  -webkit-appearance: none;
   width: 18px;
   height: 18px;
   border: 2px solid #1db954;
   border-radius: 3px;
   outline: none;
   cursor: pointer;
-}
-
-.playlist-checkbox input:checked {
-  background-color: #1db954;
   position: relative;
 }
 
-.playlist-checkbox input:checked::before {
+.playlist-checkbox input[type="checkbox"]:checked {
+  background-color: #1db954;
+}
+
+.playlist-checkbox input[type="checkbox"]:checked::after {
   content: '\2713';
+  font-size: 14px;
+  color: white;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: white;
-  font-size: 14px;
 }
