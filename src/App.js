@@ -289,14 +289,16 @@ function App() {
         <div className="modal-content">
           <h2>Select a Playlist to Analyze</h2>
           {sortedPlaylists.map(playlist => (
-            <label key={playlist.id} className="playlist-radio">
-              <input
-                type="radio"
-                checked={selectedPlaylist && selectedPlaylist.id === playlist.id}
-                onChange={() => handleRadioChange(playlist)}
-              />
-              {playlist.name} (Created: {new Date(playlist.added_at).toLocaleDateString()})
-            </label>
+            <div key={playlist.id} className="playlist-radio-container">
+              <label className="playlist-radio">
+                <input
+                  type="radio"
+                  checked={selectedPlaylist && selectedPlaylist.id === playlist.id}
+                  onChange={() => handleRadioChange(playlist)}
+                />
+                {playlist.name} (Created: {new Date(playlist.added_at).toLocaleDateString()})
+              </label>
+            </div>
           ))}
           <button onClick={() => onClose(selectedPlaylist)}>Analyze Selected Playlist</button>
         </div>
@@ -404,7 +406,7 @@ function App() {
               <p className="no-results">No results found</p>
             )}
           </div>
-          {showAnalysis && <PlaylistAnalysis analysis={playlistAnalysis} totalPlaylists={playlists.length} />}
+          {showAnalysis && <PlaylistAnalysis analysis={playlistAnalysis} totalPlaylists={1} />}
         </div>
       )}
     </div>

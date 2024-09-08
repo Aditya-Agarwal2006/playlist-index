@@ -307,3 +307,40 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+.playlist-radio-container {
+  margin-bottom: 10px;
+}
+
+.playlist-radio {
+  display: flex;
+  align-items: center;
+}
+
+.playlist-radio input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #1db954;
+  border-radius: 50%;
+  outline: none;
+  margin-right: 10px;
+}
+
+.playlist-radio input[type="radio"]:checked {
+  background-color: #1db954;
+  position: relative;
+}
+
+.playlist-radio input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background-color: white;
+  border-radius: 50%;
+}
