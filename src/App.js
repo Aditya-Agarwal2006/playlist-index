@@ -49,6 +49,27 @@ function App() {
     window.location = url;
   };
 
+  const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const fetchWithRetry = async (fetchFunction, maxRetries = 5) => {
+    let retries = 0;
+    while (retries < maxRetries) {
+      try {
+        return await fetchFunction();
+      } catch (error) {
+        if (error.status === 429) {
+          const delay = Math.pow(2, retries) * 1000 + Math.random() * 1000;
+          console.log(`Rate limited. Retrying in ${delay}ms...`);
+          await wait(delay);
+          retries++;
+        } else {
+          throw error;
+        }
+      }
+    }
+    throw new Error('Max retries reached');
+  };
+
   const analyzePlaylist = async (playlist) => {
     try {
       let allTracks = [];
@@ -92,7 +113,7 @@ function App() {
   const getPlaylistGenres = async (tracks) => {
     const artistIds = [...new Set(tracks.flatMap(item => item.track.artists.map(artist => artist.id)))];
     const artistsData = await Promise.all(
-      artistIds.map(id => spotifyApi.getArtist(id))
+      artistIds.map(id => fetchWithRetry(() => spotifyApi.getArtist(id)))
     );
     const genres = artistsData.flatMap(artist => artist.genres);
     const genreCounts = genres.reduce((acc, genre) => {
