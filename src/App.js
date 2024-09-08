@@ -144,24 +144,32 @@ function App() {
   };
 
   const analyzeSelectedPlaylist = async () => {
-    if (!playlistToAnalyze) return;
+    if (!playlistToAnalyze) {
+      console.error('No playlist selected for analysis');
+      return;
+    }
     
     try {
       const playlist = playlists.find(p => p.id === playlistToAnalyze);
       if (!playlist) {
         console.error(`Playlist with id ${playlistToAnalyze} not found`);
+        setPlaylistAnalysis([{ id: playlistToAnalyze, name: "Unknown", error: "Playlist not found" }]);
         return;
       }
+      console.log(`Starting analysis for playlist: ${playlist.name}`);
       const analysis = await analyzePlaylist(playlist);
       if (analysis) {
+        console.log(`Analysis completed for playlist: ${playlist.name}`, analysis);
         setPlaylistAnalysis([analysis]);
+      } else {
+        console.error(`Analysis failed for playlist: ${playlist.name}`);
+        setPlaylistAnalysis([{ id: playlistToAnalyze, name: playlist.name, error: "Analysis failed" }]);
       }
-      console.log(`Analyzed playlist: ${playlist.name}`);
     } catch (error) {
       console.error(`Error analyzing playlist:`, error);
-      setPlaylistAnalysis([{ id: playlistToAnalyze, name: "Unknown", error: "Failed to analyze" }]);
+      setPlaylistAnalysis([{ id: playlistToAnalyze, name: "Unknown", error: error.message || "Failed to analyze" }]);
     }
-    console.log('Playlist analysis completed');
+    setShowAnalysis(true);
   };
 
   const handleSearch = async () => {
@@ -237,35 +245,39 @@ function App() {
       <h2>Playlist Analysis</h2>
       <p>Analyzed {analysis.length} out of {totalPlaylists} playlists</p>
       {analysis.length === 0 ? (
-        <p>Loading playlist analysis...</p>
+        <p>No analysis data available</p>
       ) : (
         analysis.map((playlist, index) => (
           <div key={index} className="playlist-analysis">
             {playlist.error ? (
-              <p>Error analyzing playlist: {playlist.name || "Unknown"}</p>
+              <p>Error analyzing playlist: {playlist.name || "Unknown"} - {playlist.error}</p>
             ) : (
               <>
                 <h3>{playlist.name}</h3>
                 <p>Tracks: {playlist.trackCount}</p>
                 <p>Total Duration: {formatDuration(playlist.totalDuration)}</p>
-                <p>Average Popularity: {playlist.averagePopularity.toFixed(2)}%</p>
+                <p>Average Popularity: {playlist.averagePopularity?.toFixed(2) || 'N/A'}%</p>
                 <p>Unique Artists: {playlist.uniqueArtists}</p>
-                <div>
-                  <h4>Top Genres:</h4>
-                  <ul>
-                    {playlist.genres.map((genre, index) => (
-                      <li key={index}>{genre.genre} ({genre.count} tracks)</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h4>Recently Added Tracks:</h4>
-                  <ul>
-                    {playlist.recentlyAdded.map((track, index) => (
-                      <li key={index}>{track.name} by {track.artist} (Added: {track.addedAt})</li>
-                    ))}
-                  </ul>
-                </div>
+                {playlist.genres && (
+                  <div>
+                    <h4>Top Genres:</h4>
+                    <ul>
+                      {playlist.genres.map((genre, index) => (
+                        <li key={index}>{genre.genre} ({genre.count} tracks)</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {playlist.recentlyAdded && (
+                  <div>
+                    <h4>Recently Added Tracks:</h4>
+                    <ul>
+                      {playlist.recentlyAdded.map((track, index) => (
+                        <li key={index}>{track.name} by {track.artist} (Added: {track.addedAt})</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -314,9 +326,11 @@ function App() {
       <button className="theme-toggle" onClick={toggleTheme}>
         {isDarkMode ? 'Light Mode' : 'Dark Mode'}
       </button>
-      <button className="analysis-toggle" onClick={() => setShowAnalysisSelection(true)}>
-        Analyze Playlists
-      </button>
+      {loggedIn && (
+        <button className="analysis-toggle" onClick={() => setShowAnalysisSelection(true)}>
+          Analyze Playlists
+        </button>
+      )}
       {showAnalysisSelection && (
         <PlaylistSelectionModal
           playlists={playlists}
