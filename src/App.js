@@ -18,9 +18,8 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [playlistAnalysis, setPlaylistAnalysis] = useState([]);
   const [showAnalysis, setShowAnalysis] = useState(false);
-  const [playlistsToAnalyze, setPlaylistsToAnalyze] = useState([]);
+  const [playlistToAnalyze, setPlaylistToAnalyze] = useState(null);
   const [showAnalysisSelection, setShowAnalysisSelection] = useState(false);
-  const [selectedPlaylists, setSelectedPlaylists] = useState({});
 
   const toggleTheme = () => {
     setIsDarkMode(prevMode => !prevMode);
@@ -129,8 +128,11 @@ function App() {
   const fetchPlaylists = async () => {
     try {
       const data = await spotifyApi.getUserPlaylists();
-      console.log('Fetched playlists:', data);
-      setPlaylists(data.items);
+      const playlistsWithDates = await Promise.all(data.items.map(async (playlist) => {
+        const details = await spotifyApi.getPlaylist(playlist.id);
+        return { ...playlist, added_at: details.tracks.items[0]?.added_at || new Date().toISOString() };
+      }));
+      setPlaylists(playlistsWithDates);
     } catch (error) {
       console.error('Error fetching playlists:', error);
       if (error.status === 401) {
@@ -141,30 +143,25 @@ function App() {
     }
   };
 
-  const analyzeSelectedPlaylists = async () => {
-    const analysisResults = [];
-    for (let i = 0; i < playlistsToAnalyze.length; i++) {
-      try {
-        const playlist = playlists.find(p => p.id === playlistsToAnalyze[i]);
-        if (!playlist) {
-          console.error(`Playlist with id ${playlistsToAnalyze[i]} not found`);
-          continue;
-        }
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Add a 2-second delay between playlist analyses
-        const analysis = await analyzePlaylist(playlist);
-        if (analysis) {
-          analysisResults.push(analysis);
-          setPlaylistAnalysis([...analysisResults]);
-        }
-        console.log(`Analyzed playlist: ${playlist.name}`);
-      } catch (error) {
-        console.error(`Error analyzing playlist:`, error);
-        // Optionally, you can add the failed playlist to the results with an error status
-        analysisResults.push({ id: playlistsToAnalyze[i], name: "Unknown", error: "Failed to analyze" });
-        setPlaylistAnalysis([...analysisResults]);
+  const analyzeSelectedPlaylist = async () => {
+    if (!playlistToAnalyze) return;
+    
+    try {
+      const playlist = playlists.find(p => p.id === playlistToAnalyze);
+      if (!playlist) {
+        console.error(`Playlist with id ${playlistToAnalyze} not found`);
+        return;
       }
+      const analysis = await analyzePlaylist(playlist);
+      if (analysis) {
+        setPlaylistAnalysis([analysis]);
+      }
+      console.log(`Analyzed playlist: ${playlist.name}`);
+    } catch (error) {
+      console.error(`Error analyzing playlist:`, error);
+      setPlaylistAnalysis([{ id: playlistToAnalyze, name: "Unknown", error: "Failed to analyze" }]);
     }
-    console.log('Playlist analysis completed:', analysisResults);
+    console.log('Playlist analysis completed');
   };
 
   const handleSearch = async () => {
@@ -278,39 +275,34 @@ function App() {
   );
 
   const PlaylistSelectionModal = ({ playlists, onSelect, onClose }) => {
-    const [selectedPlaylists, setSelectedPlaylists] = useState({});
+    const [selectedPlaylist, setSelectedPlaylist] = useState(null);
 
-    const handleCheckboxChange = (playlistId, isChecked) => {
-      setSelectedPlaylists(prev => ({ ...prev, [playlistId]: isChecked }));
-      onSelect(playlistId, isChecked);
+    const handleRadioChange = (playlist) => {
+      setSelectedPlaylist(playlist);
+      onSelect(playlist.id);
     };
+
+    const sortedPlaylists = [...playlists].sort((a, b) => new Date(b.added_at) - new Date(a.added_at));
 
     return (
       <div className="modal">
         <div className="modal-content">
-          <h2>Select Playlists to Analyze</h2>
-          {playlists.map(playlist => (
-            <label key={playlist.id} className="playlist-checkbox">
+          <h2>Select a Playlist to Analyze</h2>
+          {sortedPlaylists.map(playlist => (
+            <label key={playlist.id} className="playlist-radio">
               <input
-                type="checkbox"
-                checked={selectedPlaylists[playlist.id] || false}
-                onChange={(e) => {
-                  console.log(`Playlist ${playlist.id} selected: ${e.target.checked}`);
-                  handleCheckboxChange(playlist.id, e.target.checked);
-                }}
+                type="radio"
+                checked={selectedPlaylist && selectedPlaylist.id === playlist.id}
+                onChange={() => handleRadioChange(playlist)}
               />
-              {playlist.name}
+              {playlist.name} (Created: {new Date(playlist.added_at).toLocaleDateString()})
             </label>
           ))}
-          <button onClick={onClose}>Analyze Selected Playlists</button>
+          <button onClick={() => onClose(selectedPlaylist)}>Analyze Selected Playlist</button>
         </div>
       </div>
     );
   };
-
-  useEffect(() => {
-    console.log('Playlists to analyze:', playlistsToAnalyze);
-  }, [playlistsToAnalyze]);
 
   return (
     <div className={`app ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
@@ -326,16 +318,16 @@ function App() {
       {showAnalysisSelection && (
         <PlaylistSelectionModal
           playlists={playlists}
-          onSelect={(id, isSelected) => {
-            console.log(`Playlist ${id} selected: ${isSelected}`);
-            setPlaylistsToAnalyze(prev => 
-              isSelected ? [...prev, id] : prev.filter(playlistId => playlistId !== id)
-            );
+          onSelect={(id) => {
+            console.log(`Playlist ${id} selected`);
+            setPlaylistToAnalyze(id);
           }}
-          onClose={() => {
+          onClose={(selectedPlaylist) => {
             setShowAnalysisSelection(false);
-            analyzeSelectedPlaylists();
-            setShowAnalysis(true);
+            if (selectedPlaylist) {
+              analyzeSelectedPlaylist();
+              setShowAnalysis(true);
+            }
           }}
         />
       )}
