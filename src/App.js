@@ -20,6 +20,7 @@ function App() {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [playlistsToAnalyze, setPlaylistsToAnalyze] = useState([]);
   const [showAnalysisSelection, setShowAnalysisSelection] = useState(false);
+  const [selectedPlaylists, setSelectedPlaylists] = useState({});
 
   const toggleTheme = () => {
     setIsDarkMode(prevMode => !prevMode);
@@ -251,26 +252,36 @@ function App() {
     </div>
   );
 
-  const PlaylistSelectionModal = ({ playlists, onSelect, onClose }) => (
-    <div className="modal">
-      <div className="modal-content">
-        <h2>Select Playlists to Analyze</h2>
-        {playlists.map(playlist => (
-          <label key={playlist.id} className="playlist-checkbox">
-            <input
-              type="checkbox"
-              onChange={(e) => {
-                console.log(`Playlist ${playlist.id} selected: ${e.target.checked}`);
-                onSelect(playlist.id, e.target.checked);
-              }}
-            />
-            {playlist.name}
-          </label>
-        ))}
-        <button onClick={onClose}>Analyze Selected Playlists</button>
+  const PlaylistSelectionModal = ({ playlists, onSelect, onClose }) => {
+    const [selectedPlaylists, setSelectedPlaylists] = useState({});
+
+    const handleCheckboxChange = (playlistId, isChecked) => {
+      setSelectedPlaylists(prev => ({ ...prev, [playlistId]: isChecked }));
+      onSelect(playlistId, isChecked);
+    };
+
+    return (
+      <div className="modal">
+        <div className="modal-content">
+          <h2>Select Playlists to Analyze</h2>
+          {playlists.map(playlist => (
+            <label key={playlist.id} className="playlist-checkbox">
+              <input
+                type="checkbox"
+                checked={selectedPlaylists[playlist.id] || false}
+                onChange={(e) => {
+                  console.log(`Playlist ${playlist.id} selected: ${e.target.checked}`);
+                  handleCheckboxChange(playlist.id, e.target.checked);
+                }}
+              />
+              {playlist.name}
+            </label>
+          ))}
+          <button onClick={onClose}>Analyze Selected Playlists</button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   useEffect(() => {
     console.log('Playlists to analyze:', playlistsToAnalyze);
