@@ -57,6 +57,7 @@ function App() {
       let totalTracks = 0;
 
       do {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Add a 1-second delay
         const response = await spotifyApi.getPlaylistTracks(playlist.id, { offset, limit });
         allTracks = allTracks.concat(response.items);
         offset += limit;
@@ -128,15 +129,18 @@ function App() {
           console.error(`Playlist with id ${playlistsToAnalyze[i]} not found`);
           continue;
         }
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Add a 2-second delay between playlist analyses
         const analysis = await analyzePlaylist(playlist);
         if (analysis) {
           analysisResults.push(analysis);
           setPlaylistAnalysis([...analysisResults]);
         }
         console.log(`Analyzed playlist: ${playlist.name}`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error) {
         console.error(`Error analyzing playlist:`, error);
+        // Optionally, you can add the failed playlist to the results with an error status
+        analysisResults.push({ id: playlistsToAnalyze[i], name: "Unknown", error: "Failed to analyze" });
+        setPlaylistAnalysis([...analysisResults]);
       }
     }
     console.log('Playlist analysis completed:', analysisResults);
@@ -213,13 +217,15 @@ function App() {
   const PlaylistAnalysis = ({ analysis, totalPlaylists }) => (
     <div className="analysis-container">
       <h2>Playlist Analysis</h2>
-      <p>Analyzed {analysis.filter(Boolean).length} out of {totalPlaylists} playlists</p>
+      <p>Analyzed {analysis.length} out of {totalPlaylists} playlists</p>
       {analysis.length === 0 ? (
         <p>Loading playlist analysis...</p>
       ) : (
         analysis.map((playlist, index) => (
           <div key={index} className="playlist-analysis">
-            {playlist ? (
+            {playlist.error ? (
+              <p>Error analyzing playlist: {playlist.name || "Unknown"}</p>
+            ) : (
               <>
                 <h3>{playlist.name}</h3>
                 <p>Tracks: {playlist.trackCount}</p>
@@ -243,8 +249,6 @@ function App() {
                   </ul>
                 </div>
               </>
-            ) : (
-              <p>Analyzing...</p>
             )}
           </div>
         ))
