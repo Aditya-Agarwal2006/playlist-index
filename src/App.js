@@ -286,17 +286,15 @@ function App() {
     </div>
   );
 
-  const PlaylistSelectionModal = ({ playlists, onSelect, onClose }) => {
-    const [selectedPlaylist, setSelectedPlaylist] = useState(null);
-
+  const PlaylistSelectionModal = ({ playlists, onSelect, onClose, selectedPlaylistId }) => {
     const handleRadioChange = (playlist) => {
-      setSelectedPlaylist(playlist);
       onSelect(playlist.id);
     };
 
     const handleAnalyze = () => {
-      console.log("Analyze button pressed"); // Add this line
-      if (selectedPlaylist) {
+      console.log("Analyze button pressed");
+      if (selectedPlaylistId) {
+        const selectedPlaylist = playlists.find(p => p.id === selectedPlaylistId);
         onClose(selectedPlaylist);
       } else {
         alert("Please select a playlist before analyzing.");
@@ -314,7 +312,7 @@ function App() {
               <label className="playlist-radio">
                 <input
                   type="radio"
-                  checked={selectedPlaylist && selectedPlaylist.id === playlist.id}
+                  checked={selectedPlaylistId === playlist.id}
                   onChange={() => handleRadioChange(playlist)}
                 />
                 {playlist.name} (Created: {new Date(playlist.added_at).toLocaleDateString()})
@@ -343,6 +341,7 @@ function App() {
       {showAnalysisSelection && (
         <PlaylistSelectionModal
           playlists={playlists}
+          selectedPlaylistId={playlistToAnalyze}
           onSelect={(id) => {
             console.log(`Playlist ${id} selected`);
             setPlaylistToAnalyze(id);
@@ -350,8 +349,7 @@ function App() {
           onClose={(selectedPlaylist) => {
             setShowAnalysisSelection(false);
             if (selectedPlaylist) {
-              console.log(`Analyzing playlist: ${selectedPlaylist.name}`); // Add this line
-              setPlaylistToAnalyze(selectedPlaylist.id);
+              console.log(`Analyzing playlist: ${selectedPlaylist.name}`);
               analyzeSelectedPlaylist();
               setShowAnalysis(true);
             }
