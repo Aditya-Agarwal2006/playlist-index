@@ -295,6 +295,7 @@ function App() {
     };
 
     const handleAnalyze = () => {
+      console.log("Analyze button pressed"); // Add this line
       if (selectedPlaylist) {
         onClose(selectedPlaylist);
       } else {
@@ -349,6 +350,7 @@ function App() {
           onClose={(selectedPlaylist) => {
             setShowAnalysisSelection(false);
             if (selectedPlaylist) {
+              console.log(`Analyzing playlist: ${selectedPlaylist.name}`); // Add this line
               setPlaylistToAnalyze(selectedPlaylist.id);
               analyzeSelectedPlaylist();
               setShowAnalysis(true);
