@@ -294,6 +294,14 @@ function App() {
       onSelect(playlist.id);
     };
 
+    const handleAnalyze = () => {
+      if (selectedPlaylist) {
+        onClose(selectedPlaylist);
+      } else {
+        alert("Please select a playlist before analyzing.");
+      }
+    };
+
     const sortedPlaylists = [...playlists].sort((a, b) => new Date(b.added_at) - new Date(a.added_at));
 
     return (
@@ -312,7 +320,7 @@ function App() {
               </label>
             </div>
           ))}
-          <button onClick={() => onClose(selectedPlaylist)}>Analyze Selected Playlist</button>
+          <button onClick={handleAnalyze}>Analyze Selected Playlist</button>
         </div>
       </div>
     );
@@ -341,6 +349,7 @@ function App() {
           onClose={(selectedPlaylist) => {
             setShowAnalysisSelection(false);
             if (selectedPlaylist) {
+              setPlaylistToAnalyze(selectedPlaylist.id);
               analyzeSelectedPlaylist();
               setShowAnalysis(true);
             }
