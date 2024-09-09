@@ -319,7 +319,7 @@ function App() {
               </label>
             </div>
           ))}
-          <button onClick={handleAnalyze}>Analyze Selected Playlist</button>
+          <button className="analyze-button" onClick={handleAnalyze}>Analyze Selected Playlist</button>
         </div>
       </div>
     );
